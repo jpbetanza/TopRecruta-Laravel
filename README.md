@@ -21,14 +21,17 @@ O projeto é uma API simplificada de um **Portal da Transparência**, onde órg�
 # 2. Instalar dependências
 composer install
 
-# 3. Configurar ambiente
+# 3. Configurar ambiente - copie o arquivo .env.example para .env e gere uma chave
 cp .env.example .env
 php artisan key:generate
 
-# 4. Rodar migrations e seeds
+# 4. Crie o banco de dados sqlite na pasta abaixo
+database/database.sqlite
+
+# 5. Rodar migrations e seeds
 php artisan migrate --seed
 
-# 5. Iniciar o servidor
+# 6. Iniciar o servidor
 php artisan serve
 ```
 
@@ -120,9 +123,8 @@ O código atual funciona, mas está **todo concentrado no arquivo `routes/api.ph
 
 1. **Criar Controllers** — Extrair a lógica das rotas para Controllers dedicados
 2. **Ajustar as Rotas** — Apontar as rotas para os métodos dos Controllers
-3. **Criar Form Requests** — Separar as validações em classes dedicadas
-4. **Criar API Resources** — Padronizar as respostas JSON com Resources/Collections
-5. **Implementar os filtros de despesas** — Além do filtro por `orgao_id` (já existente), você deve implementar os seguintes filtros:
+3. **Criar API Resources** — Padronizar as respostas JSON com Resources/Collections
+4. **Implementar os filtros de despesas** — Além do filtro por `orgao_id` (já existente), você deve implementar os seguintes filtros:
    - `fornecedor_id` — Filtrar despesas por fornecedor
    - `valor_min` — Filtrar despesas com valor **maior ou igual** ao informado
    - `valor_max` — Filtrar despesas com valor **menor ou igual** ao informado
@@ -136,7 +138,7 @@ O código atual funciona, mas está **todo concentrado no arquivo `routes/api.ph
    GET /api/despesas?orgao_id=1&valor_min=10000
    ```
 
-6. **Implementar as rotas de totais** — As rotas `/api/despesas/total/orgao` e `/api/despesas/total/fornecedor` estão criadas mas retornam vazio. Você deve implementar a lógica para retornar os dados corretos.
+5. **Implementar as rotas de totais** — As rotas `/api/despesas/total/orgao` e `/api/despesas/total/fornecedor` estão criadas mas retornam vazio. Você deve implementar a lógica para retornar os dados corretos.
 
 #### Saída esperada — `/api/despesas/total/orgao`
 
@@ -167,14 +169,16 @@ O código atual funciona, mas está **todo concentrado no arquivo `routes/api.ph
 
 ### ⭐ Diferenciais (opcional):
 
+- **Criar Form Requests** — Separar as validações em classes dedicadas
 - Implementar **paginação** nas listagens
+- Implementar **tratamento de erros**
 - Melhorar o **tratamento de erros** com respostas padronizadas
 - Qualquer outra melhoria que você julgue pertinente
 
 ### Critérios de avaliação:
 
 - ✅ Organização e separação de responsabilidades
-- ✅ Uso correto dos recursos do Laravel (Controllers, Resources, Form Requests)
+- ✅ Uso correto dos recursos do Laravel (Controllers, Resources, Form Requests, etc...)
 - ✅ Padronização das respostas JSON
 - ✅ Qualidade do código e boas práticas
 - ✅ Conhecimento do ecossistema Laravel
