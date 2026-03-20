@@ -26,6 +26,11 @@ Route::post('/orgaos', function (Request $request) {
     return response()->json($orgao, 201);
 });
 
+Route::get('/orgaos/paginado', function (Request $request) {
+    $perPage = min((int) $request->get('per_page', 15), 100);
+    return response()->json(Orgao::paginate($perPage));
+});
+
 Route::get('/orgaos/{id}', function (string $id) {
     $orgao = Orgao::find($id);
 
@@ -82,6 +87,11 @@ Route::post('/fornecedores', function (Request $request) {
     $fornecedor = Fornecedor::create($request->only(['name', 'document']));
 
     return response()->json($fornecedor, 201);
+});
+
+Route::get('/fornecedores/paginado', function (Request $request) {
+    $perPage = min((int) $request->get('per_page', 15), 100);
+    return response()->json(Fornecedor::paginate($perPage));
 });
 
 Route::get('/fornecedores/{id}', function (string $id) {
@@ -157,6 +167,18 @@ Route::post('/despesas', function (Request $request) {
     $despesa->load(['orgao', 'fornecedor']);
 
     return response()->json($despesa, 201);
+});
+
+Route::get('/despesas/paginado', function (Request $request) {
+    $query = Despesa::with(['orgao', 'fornecedor']);
+
+    if ($request->has('orgao_id'))      $query->where('orgao_id', $request->orgao_id);
+    if ($request->has('fornecedor_id')) $query->where('fornecedor_id', $request->fornecedor_id);
+    if ($request->has('valor_min'))     $query->where('valor', '>=', $request->valor_min);
+    if ($request->has('valor_max'))     $query->where('valor', '<=', $request->valor_max);
+
+    $perPage = min((int) $request->get('per_page', 15), 100);
+    return response()->json($query->paginate($perPage));
 });
 
 // TODO: Implementar a lógica para retornar o total de despesas agrupado por órgão

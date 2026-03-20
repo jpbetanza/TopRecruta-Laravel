@@ -1,9 +1,10 @@
 # Avaliação Mobile — React + Capacitor
-Olá! Muito obrigado por participar da avaliação técnica para integrar a equipe de desenvolvimento da Top Solutions.
+
+Olá! bem-vindo(a) à avaliação técnica para integrar a equipe de desenvolvimento da Top Solutions.
 
 ## Objetivo
 
-O desafio consiste em desenvolver um aplicativo mobile de **Portal da Transparência**, consumindo uma API REST já disponibilizada pela empresa. O app deve permitir que o usuário consulte gastos públicos — quais órgãos gastaram, com quais fornecedores e os comprovantes de cada despesa.
+O desafio consiste em desenvolver um aplicativo mobile administrativo de **Portal da Transparência**, consumindo uma API REST já disponibilizada pela empresa. O app deve permitir que o usuário consulte gastos públicos — quais órgãos gastaram, com quais fornecedores e os comprovantes de cada despesa.
 
 A API está disponível em: `https://avaliacaoapi.ext.topsolutionsrn.com.br/api`
 
@@ -12,27 +13,39 @@ A autenticação é feita via header `X-API-Key`. A chave será fornecida junto 
 ## Requisitos Funcionais
 
 ### 1. Dashboard
+
 Tela inicial exibindo um resumo financeiro:
+
 - Total de gastos agrupados por órgão (`GET /api/despesas/total/orgao`)
 - Total de gastos agrupados por fornecedor (`GET /api/despesas/total/fornecedor`)
 
-### 2. Lista de Despesas
+### 2. Despesas
+
 Tela que exibe todas as despesas cadastradas com as seguintes funcionalidades:
+
 - Listagem com descrição, valor, órgão e fornecedor de cada item
-- Filtros funcionais:
-  - `orgao_id` — filtrar por órgão
-  - `fornecedor_id` — filtrar por fornecedor
-  - `valor_min` — valor mínimo
-  - `valor_max` — valor máximo
+- Filtros funcionais: `orgao_id`, `fornecedor_id`, `valor_min`, `valor_max`
+- Cadastro de nova despesa (órgão, fornecedor, descrição, valor)
+- Edição de despesa existente
+- Exclusão de despesa (com confirmação)
 
 ### 3. Detalhe de Despesa
+
 Tela que exibe todos os campos de uma despesa. Quando houver comprovante vinculado, deve oferecer opção para visualizá-lo ou abri-lo.
 
-### 4. Lista de Órgãos
-Listagem simples de todos os órgãos cadastrados (`GET /api/orgaos`).
+### 4. Órgãos
 
-### 5. Lista de Fornecedores
-Listagem simples de todos os fornecedores cadastrados (`GET /api/fornecedores`).
+- Listagem de todos os órgãos cadastrados
+- Cadastro de novo órgão
+- Edição de órgão existente
+- Exclusão de órgão (com confirmação)
+
+### 5. Fornecedores
+
+- Listagem de todos os fornecedores cadastrados
+- Cadastro de novo fornecedor (nome e CNPJ/CPF)
+- Edição de fornecedor existente
+- Exclusão de fornecedor (com confirmação)
 
 ## Requisitos Técnicos
 
@@ -46,6 +59,7 @@ Listagem simples de todos os fornecedores cadastrados (`GET /api/fornecedores`).
 ### Sobre a API
 
 Todas as requisições devem incluir o header:
+
 ```
 X-API-Key: <chave-fornecida-pelo-recrutador>
 ```
@@ -55,21 +69,27 @@ Sem o header ou com valor inválido, a API retorna `HTTP 401`.
 Endpoints disponíveis:
 
 **Órgãos**
+
 - `GET /api/orgaos` — lista todos os órgãos
+- `GET /api/orgaos/paginado` — lista órgãos paginada (query params: `page`, `per_page`)
 - `GET /api/orgaos/{id}` — detalhe de um órgão
 - `POST /api/orgaos` — cria um órgão (body: `name`)
 - `PUT /api/orgaos/{id}` — atualiza um órgão (body: `name`)
 - `DELETE /api/orgaos/{id}` — remove um órgão
 
 **Fornecedores**
+
 - `GET /api/fornecedores` — lista todos os fornecedores
+- `GET /api/fornecedores/paginado` — lista fornecedores paginada (query params: `page`, `per_page`)
 - `GET /api/fornecedores/{id}` — detalhe de um fornecedor
 - `POST /api/fornecedores` — cria um fornecedor (body: `name`, `document`)
 - `PUT /api/fornecedores/{id}` — atualiza um fornecedor (body: `name`, `document`)
 - `DELETE /api/fornecedores/{id}` — remove um fornecedor
 
 **Despesas**
+
 - `GET /api/despesas` — lista despesas (query params opcionais: `orgao_id`, `fornecedor_id`, `valor_min`, `valor_max`)
+- `GET /api/despesas/paginado` — lista despesas paginada (query params: `page`, `per_page`, `orgao_id`, `fornecedor_id`, `valor_min`, `valor_max`)
 - `GET /api/despesas/{id}` — detalhe de uma despesa (inclui `comprovante_url` quando houver)
 - `POST /api/despesas` — cria uma despesa (body: `orgao_id`, `fornecedor_id`, `descricao`, `valor`)
 - `PUT /api/despesas/{id}` — atualiza uma despesa (body: `orgao_id`, `fornecedor_id`, `descricao`, `valor`)
@@ -77,7 +97,10 @@ Endpoints disponíveis:
 - `GET /api/despesas/total/orgao` — total de gastos agrupado por órgão
 - `GET /api/despesas/total/fornecedor` — total de gastos agrupado por fornecedor
 
+> **Rotas paginadas** retornam um envelope com os campos: `data` (itens da página), `current_page`, `last_page`, `per_page`, `total`, `from`, `to` e `links` (`first`, `last`, `prev`, `next`). O parâmetro `per_page` aceita valores entre 1 e 100 (padrão: 15).
+
 **Comprovantes**
+
 - `POST /api/despesas/{id}/comprovante` — upload de comprovante (multipart/form-data, campo `file`, formatos: jpeg, png, pdf, máx. 5 MB)
 - `GET /api/despesas/{id}/comprovante` — baixar/visualizar comprovante
 - `DELETE /api/despesas/{id}/comprovante` — remove o comprovante
@@ -97,6 +120,7 @@ npx cap run android              # ou ios
 ```
 
 Crie um arquivo `.env` com:
+
 ```
 VITE_API_URL=https://avaliacaoapi.ext.topsolutionsrn.com.br/api
 VITE_API_KEY=sua-chave-aqui
@@ -113,7 +137,6 @@ VITE_API_KEY=sua-chave-aqui
 
 Essa etapa é opcional e serve como diferencial. Não é obrigatório realizar os itens abaixo:
 
-- CRUD completo de órgãos, fornecedores e despesas (criar, editar, excluir).
 - Upload de comprovante utilizando Capacitor Camera ou FilePicker.
 - Pull-to-refresh nas listagens.
 - Skeleton loading nos estados de carregamento.
