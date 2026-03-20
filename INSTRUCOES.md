@@ -143,6 +143,8 @@ Essa etapa é opcional e serve como diferencial. Não é obrigatório realizar o
 - Tema escuro.
 - Paginação ou scroll infinito nas listagens.
 - Tratamento de erros com toasts ou snackbars.
+- Ordenação das listagens por diferentes critérios (ex: despesas por valor ou data, fornecedores por nome).
+- Filtros combinados na tela de despesas: por órgão, fornecedor, intervalo de valor — com opção de limpar filtros ativos.
 
 ## Instruções Finais
 

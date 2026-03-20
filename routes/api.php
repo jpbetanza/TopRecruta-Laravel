@@ -181,14 +181,30 @@ Route::get('/despesas/paginado', function (Request $request) {
     return response()->json($query->paginate($perPage));
 });
 
-// TODO: Implementar a lógica para retornar o total de despesas agrupado por órgão
 Route::get('/despesas/total/orgao', function () {
-    return response()->json([]);
+    $totais = Despesa::with('orgao')
+        ->selectRaw('orgao_id, SUM(valor) as total')
+        ->groupBy('orgao_id')
+        ->get()
+        ->map(fn ($d) => [
+            'orgao' => $d->orgao,
+            'total' => (float) $d->total,
+        ]);
+
+    return response()->json($totais);
 });
 
-// TODO: Implementar a lógica para retornar o total de despesas agrupado por fornecedor
 Route::get('/despesas/total/fornecedor', function () {
-    return response()->json([]);
+    $totais = Despesa::with('fornecedor')
+        ->selectRaw('fornecedor_id, SUM(valor) as total')
+        ->groupBy('fornecedor_id')
+        ->get()
+        ->map(fn ($d) => [
+            'fornecedor' => $d->fornecedor,
+            'total'      => (float) $d->total,
+        ]);
+
+    return response()->json($totais);
 });
 
 // POST /api/despesas/{id}/comprovante — faz upload
