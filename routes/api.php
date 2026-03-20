@@ -5,6 +5,7 @@ use App\Models\Fornecedor;
 use App\Models\Despesa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // =============================================
 // ÓRGÃOS
@@ -168,6 +169,57 @@ Route::get('/despesas/total/fornecedor', function () {
     return response()->json([]);
 });
 
+// POST /api/despesas/{id}/comprovante — faz upload
+Route::post('/despesas/{id}/comprovante', function (string $id) {
+    $despesa = Despesa::findOrFail($id);
+
+    $data = request()->validate([
+        'file' => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+    ]);
+
+    if ($despesa->comprovante_path) {
+        Storage::disk('comprovantes')->delete($despesa->comprovante_path);
+    }
+
+    $path = $data['file']->store('', 'comprovantes');
+
+    $despesa->update([
+        'comprovante_path' => $path,
+        'comprovante_mime' => $data['file']->getMimeType(),
+    ]);
+
+    return response()->json(['path' => $path], 200);
+});
+
+// GET /api/despesas/{id}/comprovante — baixa/visualiza o arquivo
+Route::get('/despesas/{id}/comprovante', function (string $id) {
+    $despesa = Despesa::findOrFail($id);
+
+    if (!$despesa->comprovante_path || !Storage::disk('comprovantes')->exists($despesa->comprovante_path)) {
+        return response()->json(['message' => 'Comprovante não encontrado.'], 404);
+    }
+
+    return response()->file(
+        Storage::disk('comprovantes')->path($despesa->comprovante_path),
+        ['Content-Type' => $despesa->comprovante_mime ?? 'application/octet-stream']
+    );
+});
+
+// DELETE /api/despesas/{id}/comprovante — remove o arquivo
+Route::delete('/despesas/{id}/comprovante', function (string $id) {
+    $despesa = Despesa::findOrFail($id);
+
+    if (!$despesa->comprovante_path) {
+        return response()->json(['message' => 'Nenhum comprovante vinculado.'], 404);
+    }
+
+    Storage::disk('comprovantes')->delete($despesa->comprovante_path);
+
+    $despesa->update(['comprovante_path' => null, 'comprovante_mime' => null]);
+
+    return response()->noContent();
+});
+
 Route::get('/despesas/{id}', function (string $id) {
     $despesa = Despesa::with(['orgao', 'fornecedor'])->find($id);
 
@@ -175,7 +227,11 @@ Route::get('/despesas/{id}', function (string $id) {
         return response()->json(['message' => 'Despesa não encontrada'], 404);
     }
 
-    return response()->json($despesa);
+    return response()->json(array_merge($despesa->toArray(), [
+        'comprovante_url' => $despesa->comprovante_path
+            ? url("/api/despesas/{$despesa->id}/comprovante")
+            : null,
+    ]));
 });
 
 Route::put('/despesas/{id}', function (Request $request, string $id) {

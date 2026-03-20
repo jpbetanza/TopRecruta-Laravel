@@ -73,45 +73,517 @@ A API estará disponível em `http://localhost:8000/api`
 
 ---
 
+## 🔐 Autenticação
+
+Todas as rotas exigem o header `X-API-Key` com um segredo válido configurado na variável de ambiente `API_KEYS`.
+
+```
+X-API-Key: seu-segredo-aqui
+```
+
+Sem o header ou com valor inválido, a API retorna:
+
+```json
+HTTP 401
+{ "message": "Unauthorized." }
+```
+
+---
+
 ## 📡 Endpoints Disponíveis
 
-### Órgãos
+### Índice rápido
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| GET | `/api/orgaos` | Listar todos os órgãos |
-| POST | `/api/orgaos` | Criar novo órgão |
+| GET | `/api/orgaos` | Listar órgãos |
+| POST | `/api/orgaos` | Criar órgão |
 | GET | `/api/orgaos/{id}` | Buscar órgão por ID |
 | PUT | `/api/orgaos/{id}` | Atualizar órgão |
 | DELETE | `/api/orgaos/{id}` | Remover órgão |
-
-### Fornecedores
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/api/fornecedores` | Listar todos os fornecedores |
-| POST | `/api/fornecedores` | Criar novo fornecedor |
+| GET | `/api/fornecedores` | Listar fornecedores |
+| POST | `/api/fornecedores` | Criar fornecedor |
 | GET | `/api/fornecedores/{id}` | Buscar fornecedor por ID |
 | PUT | `/api/fornecedores/{id}` | Atualizar fornecedor |
 | DELETE | `/api/fornecedores/{id}` | Remover fornecedor |
-
-### Despesas
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/api/despesas` | Listar despesas (filtro por `orgao_id` disponível) |
-| POST | `/api/despesas` | Criar nova despesa |
+| GET | `/api/despesas` | Listar despesas (com filtros) |
+| POST | `/api/despesas` | Criar despesa |
 | GET | `/api/despesas/{id}` | Buscar despesa por ID |
 | PUT | `/api/despesas/{id}` | Atualizar despesa |
 | DELETE | `/api/despesas/{id}` | Remover despesa |
-| GET | `/api/despesas/total/orgao` | ⚠️ **Implementar** — Total de gastos por órgão |
-| GET | `/api/despesas/total/fornecedor` | ⚠️ **Implementar** — Total de gastos por fornecedor |
+| GET | `/api/despesas/total/orgao` | Total de gastos agrupado por órgão |
+| GET | `/api/despesas/total/fornecedor` | Total de gastos agrupado por fornecedor |
+| POST | `/api/despesas/{id}/comprovante` | Fazer upload de comprovante |
+| GET | `/api/despesas/{id}/comprovante` | Baixar/visualizar comprovante |
+| DELETE | `/api/despesas/{id}/comprovante` | Remover comprovante |
 
-#### Filtro disponível em Despesas
+---
 
+### Órgãos
+
+#### `GET /api/orgaos`
+
+Lista todos os órgãos do tenant.
+
+**Resposta `200`:**
+```json
+[
+  { "id": 1, "name": "Secretaria de Saúde", "created_at": "2026-03-20T00:00:00.000000Z", "updated_at": "2026-03-20T00:00:00.000000Z" },
+  { "id": 2, "name": "Secretaria de Educação", "created_at": "2026-03-20T00:00:00.000000Z", "updated_at": "2026-03-20T00:00:00.000000Z" }
+]
 ```
+
+---
+
+#### `POST /api/orgaos`
+
+Cria um novo órgão.
+
+**Body (JSON):**
+
+| Campo | Tipo | Obrigatório | Regras |
+|-------|------|-------------|--------|
+| `name` | string | ✅ | máx. 255 caracteres, único por tenant |
+
+```json
+{ "name": "Secretaria de Saúde" }
+```
+
+**Resposta `201`:**
+```json
+{ "id": 1, "name": "Secretaria de Saúde", "created_at": "2026-03-20T00:00:00.000000Z", "updated_at": "2026-03-20T00:00:00.000000Z" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `422` | Validação falhou (`name` ausente, muito longo ou duplicado) |
+
+---
+
+#### `GET /api/orgaos/{id}`
+
+Retorna um órgão pelo ID.
+
+**Resposta `200`:**
+```json
+{ "id": 1, "name": "Secretaria de Saúde", "created_at": "2026-03-20T00:00:00.000000Z", "updated_at": "2026-03-20T00:00:00.000000Z" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | `{ "message": "Órgão não encontrado" }` |
+
+---
+
+#### `PUT /api/orgaos/{id}`
+
+Atualiza um órgão.
+
+**Body (JSON):**
+
+| Campo | Tipo | Obrigatório | Regras |
+|-------|------|-------------|--------|
+| `name` | string | ✅ | máx. 255 caracteres, único por tenant (exceto o próprio registro) |
+
+```json
+{ "name": "Secretaria de Infraestrutura" }
+```
+
+**Resposta `200`:**
+```json
+{ "id": 1, "name": "Secretaria de Infraestrutura", "created_at": "2026-03-20T00:00:00.000000Z", "updated_at": "2026-03-20T12:00:00.000000Z" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | Órgão não encontrado |
+| `422` | Validação falhou |
+
+---
+
+#### `DELETE /api/orgaos/{id}`
+
+Remove um órgão.
+
+**Resposta `200`:**
+```json
+{ "message": "Órgão removido com sucesso" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | Órgão não encontrado |
+
+---
+
+### Fornecedores
+
+#### `GET /api/fornecedores`
+
+Lista todos os fornecedores do tenant.
+
+**Resposta `200`:**
+```json
+[
+  { "id": 1, "name": "TechSol Informática", "document": "12.345.678/0001-99", "created_at": "2026-03-20T00:00:00.000000Z", "updated_at": "2026-03-20T00:00:00.000000Z" }
+]
+```
+
+---
+
+#### `POST /api/fornecedores`
+
+Cria um novo fornecedor.
+
+**Body (JSON):**
+
+| Campo | Tipo | Obrigatório | Regras |
+|-------|------|-------------|--------|
+| `name` | string | ✅ | máx. 255 caracteres |
+| `document` | string | ✅ | máx. 20 caracteres, único por tenant |
+
+```json
+{ "name": "TechSol Informática", "document": "12.345.678/0001-99" }
+```
+
+**Resposta `201`:**
+```json
+{ "id": 1, "name": "TechSol Informática", "document": "12.345.678/0001-99", "created_at": "2026-03-20T00:00:00.000000Z", "updated_at": "2026-03-20T00:00:00.000000Z" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `422` | Validação falhou (campos ausentes, document duplicado) |
+
+---
+
+#### `GET /api/fornecedores/{id}`
+
+Retorna um fornecedor pelo ID.
+
+**Resposta `200`:**
+```json
+{ "id": 1, "name": "TechSol Informática", "document": "12.345.678/0001-99", "created_at": "2026-03-20T00:00:00.000000Z", "updated_at": "2026-03-20T00:00:00.000000Z" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | `{ "message": "Fornecedor não encontrado" }` |
+
+---
+
+#### `PUT /api/fornecedores/{id}`
+
+Atualiza um fornecedor.
+
+**Body (JSON):**
+
+| Campo | Tipo | Obrigatório | Regras |
+|-------|------|-------------|--------|
+| `name` | string | ✅ | máx. 255 caracteres |
+| `document` | string | ✅ | máx. 20 caracteres, único por tenant (exceto o próprio) |
+
+**Resposta `200`:**
+```json
+{ "id": 1, "name": "TechSol Informática", "document": "12.345.678/0001-99", "created_at": "2026-03-20T00:00:00.000000Z", "updated_at": "2026-03-20T12:00:00.000000Z" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | Fornecedor não encontrado |
+| `422` | Validação falhou |
+
+---
+
+#### `DELETE /api/fornecedores/{id}`
+
+Remove um fornecedor.
+
+**Resposta `200`:**
+```json
+{ "message": "Fornecedor removido com sucesso" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | Fornecedor não encontrado |
+
+---
+
+### Despesas
+
+#### `GET /api/despesas`
+
+Lista as despesas do tenant. Suporta filtros via query string.
+
+**Query params (todos opcionais):**
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `orgao_id` | integer | Filtra por órgão |
+| `fornecedor_id` | integer | Filtra por fornecedor |
+| `valor_min` | numeric | Valor mínimo (≥) |
+| `valor_max` | numeric | Valor máximo (≤) |
+
+**Exemplos:**
+```
+GET /api/despesas
 GET /api/despesas?orgao_id=1
+GET /api/despesas?fornecedor_id=2
+GET /api/despesas?valor_min=5000&valor_max=30000
+GET /api/despesas?orgao_id=1&valor_min=10000
 ```
+
+**Resposta `200`:**
+```json
+[
+  {
+    "id": 1,
+    "orgao_id": 1,
+    "fornecedor_id": 2,
+    "descricao": "Compra de equipamentos de informática",
+    "valor": "15000.00",
+    "comprovante_path": null,
+    "comprovante_mime": null,
+    "created_at": "2026-03-20T00:00:00.000000Z",
+    "updated_at": "2026-03-20T00:00:00.000000Z",
+    "orgao": { "id": 1, "name": "Secretaria de Saúde" },
+    "fornecedor": { "id": 2, "name": "TechSol Informática", "document": "12.345.678/0001-99" }
+  }
+]
+```
+
+---
+
+#### `POST /api/despesas`
+
+Cria uma nova despesa.
+
+**Body (JSON):**
+
+| Campo | Tipo | Obrigatório | Regras |
+|-------|------|-------------|--------|
+| `orgao_id` | integer | ✅ | deve existir na tabela `orgaos` |
+| `fornecedor_id` | integer | ✅ | deve existir na tabela `fornecedores` |
+| `descricao` | string | ✅ | máx. 500 caracteres |
+| `valor` | numeric | ✅ | mín. 0.01 |
+
+```json
+{
+  "orgao_id": 1,
+  "fornecedor_id": 2,
+  "descricao": "Compra de equipamentos de informática",
+  "valor": 15000.00
+}
+```
+
+**Resposta `201`:**
+```json
+{
+  "id": 1,
+  "orgao_id": 1,
+  "fornecedor_id": 2,
+  "descricao": "Compra de equipamentos de informática",
+  "valor": "15000.00",
+  "created_at": "2026-03-20T00:00:00.000000Z",
+  "updated_at": "2026-03-20T00:00:00.000000Z",
+  "orgao": { "id": 1, "name": "Secretaria de Saúde" },
+  "fornecedor": { "id": 2, "name": "TechSol Informática", "document": "12.345.678/0001-99" }
+}
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `422` | Validação falhou |
+
+---
+
+#### `GET /api/despesas/{id}`
+
+Retorna uma despesa pelo ID, incluindo a URL do comprovante quando houver.
+
+**Resposta `200`:**
+```json
+{
+  "id": 1,
+  "orgao_id": 1,
+  "fornecedor_id": 2,
+  "descricao": "Compra de equipamentos de informática",
+  "valor": "15000.00",
+  "comprovante_path": "uuid-do-arquivo.pdf",
+  "comprovante_mime": "application/pdf",
+  "created_at": "2026-03-20T00:00:00.000000Z",
+  "updated_at": "2026-03-20T00:00:00.000000Z",
+  "comprovante_url": "http://localhost:8000/api/despesas/1/comprovante",
+  "orgao": { "id": 1, "name": "Secretaria de Saúde" },
+  "fornecedor": { "id": 2, "name": "TechSol Informática", "document": "12.345.678/0001-99" }
+}
+```
+
+> `comprovante_url` é `null` quando nenhum comprovante foi enviado.
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | `{ "message": "Despesa não encontrada" }` |
+
+---
+
+#### `PUT /api/despesas/{id}`
+
+Atualiza uma despesa.
+
+**Body (JSON):**
+
+| Campo | Tipo | Obrigatório | Regras |
+|-------|------|-------------|--------|
+| `orgao_id` | integer | ✅ | deve existir na tabela `orgaos` |
+| `fornecedor_id` | integer | ✅ | deve existir na tabela `fornecedores` |
+| `descricao` | string | ✅ | máx. 500 caracteres |
+| `valor` | numeric | ✅ | mín. 0.01 |
+
+**Resposta `200`:** mesmo formato do `GET /api/despesas/{id}`.
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | Despesa não encontrada |
+| `422` | Validação falhou |
+
+---
+
+#### `DELETE /api/despesas/{id}`
+
+Remove uma despesa.
+
+**Resposta `200`:**
+```json
+{ "message": "Despesa removida com sucesso" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | Despesa não encontrada |
+
+---
+
+#### `GET /api/despesas/total/orgao`
+
+⚠️ **Pendente de implementação** — Total de gastos agrupado por órgão.
+
+**Resposta `200` esperada:**
+```json
+{
+  "total": 171000.00,
+  "por_orgao": [
+    { "orgao": "Secretaria de Saúde", "valor_total": 35500.00 },
+    { "orgao": "Secretaria de Educação", "valor_total": 73000.00 },
+    { "orgao": "Secretaria de Trânsito", "valor_total": 62500.00 }
+  ]
+}
+```
+
+---
+
+#### `GET /api/despesas/total/fornecedor`
+
+⚠️ **Pendente de implementação** — Total de gastos agrupado por fornecedor.
+
+**Resposta `200` esperada:**
+```json
+{
+  "total": 171000.00,
+  "por_fornecedor": [
+    { "fornecedor": "Limpa Natal Ltda", "valor_total": 24000.00 },
+    { "fornecedor": "TechSol Informática", "valor_total": 92000.00 },
+    { "fornecedor": "TransNatal Transportes", "valor_total": 40000.00 },
+    { "fornecedor": "MedSupply Hospitalar", "valor_total": 15000.00 }
+  ]
+}
+```
+
+---
+
+### Comprovantes de Despesa
+
+#### `POST /api/despesas/{id}/comprovante`
+
+Faz upload de um comprovante para uma despesa. Se já existir um comprovante, ele é substituído.
+
+**Body (`multipart/form-data`):**
+
+| Campo | Tipo | Obrigatório | Regras |
+|-------|------|-------------|--------|
+| `file` | file | ✅ | formatos aceitos: `jpeg`, `jpg`, `png`, `pdf` — tamanho máx: 5 MB |
+
+**Exemplo com curl:**
+```bash
+curl -X POST http://localhost:8000/api/despesas/1/comprovante \
+  -H "X-API-Key: seu-segredo" \
+  -F "file=@/caminho/para/arquivo.pdf"
+```
+
+**Resposta `200`:**
+```json
+{ "path": "a1b2c3d4-uuid-gerado.pdf" }
+```
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | Despesa não encontrada |
+| `422` | Arquivo ausente, formato inválido ou maior que 5 MB |
+
+---
+
+#### `GET /api/despesas/{id}/comprovante`
+
+Baixa ou exibe o comprovante da despesa. Retorna o arquivo binário com o `Content-Type` original.
+
+**Resposta:** arquivo binário (`application/pdf`, `image/jpeg`, etc.)
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | `{ "message": "Comprovante não encontrado." }` — despesa não existe ou sem comprovante |
+
+---
+
+#### `DELETE /api/despesas/{id}/comprovante`
+
+Remove o comprovante da despesa.
+
+**Resposta `204`:** sem corpo.
+
+**Erros:**
+
+| Status | Situação |
+|--------|----------|
+| `404` | `{ "message": "Nenhum comprovante vinculado." }` |
 
 ---
 
@@ -138,34 +610,7 @@ O código atual funciona, mas está **todo concentrado no arquivo `routes/api.ph
    GET /api/despesas?orgao_id=1&valor_min=10000
    ```
 
-5. **Implementar as rotas de totais** — As rotas `/api/despesas/total/orgao` e `/api/despesas/total/fornecedor` estão criadas mas retornam vazio. Você deve implementar a lógica para retornar os dados corretos.
-
-#### Saída esperada — `/api/despesas/total/orgao`
-
-```json
-{
-  "total": 171000.00,
-  "por_orgao": [
-    { "orgao": "Secretaria de Saúde", "valor_total": 35500.00 },
-    { "orgao": "Secretaria de Educação", "valor_total": 73000.00 },
-    { "orgao": "Secretaria de Trânsito", "valor_total": 62500.00 }
-  ]
-}
-```
-
-#### Saída esperada — `/api/despesas/total/fornecedor`
-
-```json
-{
-  "total": 171000.00,
-  "por_fornecedor": [
-    { "fornecedor": "Limpa Natal Ltda", "valor_total": 24000.00 },
-    { "fornecedor": "TechSol Informática", "valor_total": 92000.00 },
-    { "fornecedor": "TransNatal Transportes", "valor_total": 40000.00 },
-    { "fornecedor": "MedSupply Hospitalar", "valor_total": 15000.00 }
-  ]
-}
-```
+5. **Implementar as rotas de totais** — As rotas `/api/despesas/total/orgao` e `/api/despesas/total/fornecedor` estão criadas mas retornam vazio. Você deve implementar a lógica para retornar os dados corretos (veja o formato esperado na seção de endpoints acima).
 
 ### ⭐ Diferenciais (opcional):
 

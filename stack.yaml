@@ -1,0 +1,45 @@
+version: '3.8'
+
+networks:
+  nginx_proxy_manager_default:
+    external: true
+
+services:
+  avaliacaoapi:
+    image: 'gitmaster/avaliacaoapi:latest'
+    networks:
+      - nginx_proxy_manager_default
+    restart: unless-stopped
+    environment:
+      - APP_NAME=AvaliacaoAPI
+      - APP_ENV=production
+      - APP_KEY=  # Opcional: gerado automaticamente se vazio, mas recomenda-se fixar para evitar invalidar sessões a cada restart
+      - APP_DEBUG=false
+      - APP_URL=https://avaliacaoapi.ext.topsolutionsrn.com.br
+
+      - APP_LOCALE=pt_BR
+      - APP_FALLBACK_LOCALE=pt_BR
+      - APP_FAKER_LOCALE=pt_BR
+
+      - LOG_CHANNEL=stack
+      - LOG_STACK=single
+      - LOG_LEVEL=error
+
+      - DB_CONNECTION=sqlite
+
+      - SESSION_DRIVER=file
+      - SESSION_LIFETIME=120
+
+      - FILESYSTEM_DISK=local
+      - QUEUE_CONNECTION=sync
+      - CACHE_STORE=file
+
+      # Multi-tenancy via API Key
+      # Formato: alias:secret,alias2:secret2
+      # O alias é armazenado como tenant_id no banco; o secret é enviado no header X-API-Key
+      - API_KEYS=cliente1:minha-chave-segura-aqui
+    volumes:
+      - avaliacaoapi_data:/var/www/html/database
+
+volumes:
+  avaliacaoapi_data:
