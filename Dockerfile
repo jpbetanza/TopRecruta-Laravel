@@ -11,7 +11,7 @@ COPY vite.config.js ./
 RUN npm run build
 
 # Stage 2: PHP runtime
-FROM php:8.3-apache AS runtime
+FROM php:8.4-apache AS runtime
 
 WORKDIR /var/www/html
 
