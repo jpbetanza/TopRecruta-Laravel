@@ -5,12 +5,10 @@ namespace Database\Seeders;
 use App\Models\Orgao;
 use App\Models\Fornecedor;
 use App\Models\Despesa;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
 
     public function run(): void
     {
