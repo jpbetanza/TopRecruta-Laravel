@@ -22,8 +22,14 @@ class DatabaseSeeder extends Seeder
         }
 
         foreach ($tenants as $alias) {
-            // Bind tenant so global scope and creating hooks work correctly
             app()->instance('tenant_id', $alias);
+
+            $exists = Orgao::withoutGlobalScopes()->where('tenant_id', $alias)->exists();
+
+            if ($exists) {
+                $this->command->info("Tenant [{$alias}] já possui dados. Pulando.");
+                continue;
+            }
 
             $this->command->info("Seeding tenant: {$alias}");
             $this->seedTenant();

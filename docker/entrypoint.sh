@@ -10,11 +10,9 @@ if [ -z "${APP_KEY}" ]; then
 fi
 
 # Create SQLite database file if it doesn't exist
-FRESH_DB=false
 if [ ! -f "${DB_DATABASE}" ]; then
     touch "${DB_DATABASE}"
     chown www-data:www-data "${DB_DATABASE}"
-    FRESH_DB=true
 fi
 
 # Garantir diretório de uploads dentro do volume
@@ -25,10 +23,8 @@ chown -R www-data:www-data "${UPLOADS_DIR}"
 # Run migrations
 php artisan migrate --force --no-interaction
 
-# Seed on first boot only
-if [ "${FRESH_DB}" = "true" ]; then
-    php artisan db:seed --force --no-interaction
-fi
+# Seed any tenant that has no data yet
+php artisan db:seed --force --no-interaction
 
 # Create storage symlink (public/storage → storage/app/public)
 php artisan storage:link --force
