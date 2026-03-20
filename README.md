@@ -642,7 +642,7 @@ Ao rodar `php artisan migrate --seed`, o banco será populado automaticamente co
 
 ## 🛠️ Tecnologias
 
-- **PHP** ^8.3
+- **PHP** ^8.4
 - **Laravel** ^13.0
 - **SQLite** (banco de dados local)
 

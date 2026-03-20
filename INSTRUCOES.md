@@ -1,307 +1,131 @@
-# Desafio Técnico — Desenvolvedor Mobile (React + Capacitor)
+# Avaliação Mobile — React + Capacitor
+Olá! Muito obrigado por participar da avaliação técnica para integrar a equipe de desenvolvimento da Top Solutions.
 
-Olá! Bem-vindo ao desafio técnico para a vaga de **Desenvolvedor Mobile**.
+## Objetivo
 
-Neste desafio você vai construir um aplicativo mobile de **Portal da Transparência** que consome uma API REST já pronta. O foco é avaliar sua capacidade de criar uma experiência mobile real — rodando em emulador ou dispositivo físico — usando React e Capacitor.
+O desafio consiste em desenvolver um aplicativo mobile de **Portal da Transparência**, consumindo uma API REST já disponibilizada pela empresa. O app deve permitir que o usuário consulte gastos públicos — quais órgãos gastaram, com quais fornecedores e os comprovantes de cada despesa.
 
----
+A API está disponível em: `https://avaliacaoapi.ext.topsolutionsrn.com.br/api`
 
-## O Projeto
+A autenticação é feita via header `X-API-Key`. A chave será fornecida junto com este enunciado.
 
-Você vai construir o app mobile de um portal de transparência pública, permitindo que cidadãos consultem gastos governamentais: quais órgãos gastaram, com quais fornecedores, e os comprovantes de cada despesa.
+## Requisitos Funcionais
 
-**Stack obrigatória:** React + Capacitor
-**Recomendado:** Vite + TypeScript
+### 1. Dashboard
+Tela inicial exibindo um resumo financeiro:
+- Total de gastos agrupados por órgão (`GET /api/despesas/total/orgao`)
+- Total de gastos agrupados por fornecedor (`GET /api/despesas/total/fornecedor`)
 
----
+### 2. Lista de Despesas
+Tela que exibe todas as despesas cadastradas com as seguintes funcionalidades:
+- Listagem com descrição, valor, órgão e fornecedor de cada item
+- Filtros funcionais:
+  - `orgao_id` — filtrar por órgão
+  - `fornecedor_id` — filtrar por fornecedor
+  - `valor_min` — valor mínimo
+  - `valor_max` — valor máximo
 
-## A API
+### 3. Detalhe de Despesa
+Tela que exibe todos os campos de uma despesa. Quando houver comprovante vinculado, deve oferecer opção para visualizá-lo ou abri-lo.
 
-A API já está implementada e rodando. Você receberá as informações de acesso junto com este enunciado.
+### 4. Lista de Órgãos
+Listagem simples de todos os órgãos cadastrados (`GET /api/orgaos`).
 
-### URL base
+### 5. Lista de Fornecedores
+Listagem simples de todos os fornecedores cadastrados (`GET /api/fornecedores`).
 
-```
-https://avaliacaoapi.ext.topsolutionsrn.com.br/api
-```
+## Requisitos Técnicos
 
-### Autenticação
+- O projeto deve ser feito em **React + Capacitor**.
+- Utilize **Vite** e **TypeScript**.
+- O app deve rodar em **emulador ou dispositivo físico** — não apenas no navegador.
+- As respostas da API devem ser **tipadas com TypeScript** (evite `any`).
+- Organize o projeto com separação clara entre componentes e camada de serviços/API.
+- Armazene a `X-API-Key` em variável de ambiente (`.env`) — não a commite hardcoded.
 
-Todas as requisições precisam do header:
+### Sobre a API
 
+Todas as requisições devem incluir o header:
 ```
 X-API-Key: <chave-fornecida-pelo-recrutador>
 ```
 
-> A chave será fornecida junto com este enunciado. **Não a commite hardcoded** — use variável de ambiente (`.env`).
+Sem o header ou com valor inválido, a API retorna `HTTP 401`.
 
----
+Endpoints disponíveis:
 
-## Endpoints da API
+**Órgãos**
+- `GET /api/orgaos` — lista todos os órgãos
+- `GET /api/orgaos/{id}` — detalhe de um órgão
+- `POST /api/orgaos` — cria um órgão (body: `name`)
+- `PUT /api/orgaos/{id}` — atualiza um órgão (body: `name`)
+- `DELETE /api/orgaos/{id}` — remove um órgão
 
-### Órgãos
+**Fornecedores**
+- `GET /api/fornecedores` — lista todos os fornecedores
+- `GET /api/fornecedores/{id}` — detalhe de um fornecedor
+- `POST /api/fornecedores` — cria um fornecedor (body: `name`, `document`)
+- `PUT /api/fornecedores/{id}` — atualiza um fornecedor (body: `name`, `document`)
+- `DELETE /api/fornecedores/{id}` — remove um fornecedor
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/api/orgaos` | Lista todos os órgãos |
-| `GET` | `/api/orgaos/{id}` | Detalhe de um órgão |
-| `POST` | `/api/orgaos` | Cria um órgão |
-| `PUT` | `/api/orgaos/{id}` | Atualiza um órgão |
-| `DELETE` | `/api/orgaos/{id}` | Remove um órgão |
+**Despesas**
+- `GET /api/despesas` — lista despesas (query params opcionais: `orgao_id`, `fornecedor_id`, `valor_min`, `valor_max`)
+- `GET /api/despesas/{id}` — detalhe de uma despesa (inclui `comprovante_url` quando houver)
+- `POST /api/despesas` — cria uma despesa (body: `orgao_id`, `fornecedor_id`, `descricao`, `valor`)
+- `PUT /api/despesas/{id}` — atualiza uma despesa (body: `orgao_id`, `fornecedor_id`, `descricao`, `valor`)
+- `DELETE /api/despesas/{id}` — remove uma despesa
+- `GET /api/despesas/total/orgao` — total de gastos agrupado por órgão
+- `GET /api/despesas/total/fornecedor` — total de gastos agrupado por fornecedor
 
-**Campos de Órgão:**
-```json
-{
-  "id": 1,
-  "name": "Secretaria de Educação",
-  "created_at": "2026-03-20T00:00:00.000000Z",
-  "updated_at": "2026-03-20T00:00:00.000000Z"
-}
-```
+**Comprovantes**
+- `POST /api/despesas/{id}/comprovante` — upload de comprovante (multipart/form-data, campo `file`, formatos: jpeg, png, pdf, máx. 5 MB)
+- `GET /api/despesas/{id}/comprovante` — baixar/visualizar comprovante
+- `DELETE /api/despesas/{id}/comprovante` — remove o comprovante
 
-**POST/PUT body:**
-```json
-{ "name": "Secretaria de Saúde" }
-```
-
----
-
-### Fornecedores
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/api/fornecedores` | Lista todos os fornecedores |
-| `GET` | `/api/fornecedores/{id}` | Detalhe de um fornecedor |
-| `POST` | `/api/fornecedores` | Cria um fornecedor |
-| `PUT` | `/api/fornecedores/{id}` | Atualiza um fornecedor |
-| `DELETE` | `/api/fornecedores/{id}` | Remove um fornecedor |
-
-**Campos de Fornecedor:**
-```json
-{
-  "id": 1,
-  "name": "Empresa XYZ Ltda",
-  "document": "12.345.678/0001-90",
-  "created_at": "2026-03-20T00:00:00.000000Z",
-  "updated_at": "2026-03-20T00:00:00.000000Z"
-}
-```
-
-**POST/PUT body:**
-```json
-{ "name": "Empresa XYZ Ltda", "document": "12.345.678/0001-90" }
-```
-
----
-
-### Despesas
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/api/despesas` | Lista despesas (com filtros opcionais) |
-| `GET` | `/api/despesas/{id}` | Detalhe de uma despesa |
-| `POST` | `/api/despesas` | Cria uma despesa |
-| `PUT` | `/api/despesas/{id}` | Atualiza uma despesa |
-| `DELETE` | `/api/despesas/{id}` | Remove uma despesa |
-| `GET` | `/api/despesas/total/orgao` | Total de gastos agrupado por órgão |
-| `GET` | `/api/despesas/total/fornecedor` | Total de gastos agrupado por fornecedor |
-
-**Filtros disponíveis em `GET /api/despesas` (query params):**
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-----------|
-| `orgao_id` | integer | Filtra por órgão |
-| `fornecedor_id` | integer | Filtra por fornecedor |
-| `valor_min` | number | Valor mínimo |
-| `valor_max` | number | Valor máximo |
-
-**Campos de Despesa:**
-```json
-{
-  "id": 1,
-  "orgao_id": 1,
-  "fornecedor_id": 2,
-  "descricao": "Compra de material escolar",
-  "valor": "15000.00",
-  "comprovante_path": "arquivo.pdf",
-  "comprovante_mime": "application/pdf",
-  "comprovante_url": "https://avaliacaoapi.ext.topsolutionsrn.com.br/api/despesas/1/comprovante",
-  "orgao": { "id": 1, "name": "Secretaria de Educação" },
-  "fornecedor": { "id": 2, "name": "Empresa XYZ Ltda", "document": "12.345.678/0001-90" },
-  "created_at": "2026-03-20T00:00:00.000000Z",
-  "updated_at": "2026-03-20T00:00:00.000000Z"
-}
-```
-
-**POST/PUT body:**
-```json
-{
-  "orgao_id": 1,
-  "fornecedor_id": 2,
-  "descricao": "Compra de material escolar",
-  "valor": 15000.00
-}
-```
-
-**Resposta de `GET /api/despesas/total/orgao`:**
-```json
-[
-  { "orgao_id": 1, "orgao": "Secretaria de Educação", "total": "45000.00" },
-  { "orgao_id": 2, "orgao": "Secretaria de Saúde", "total": "120000.00" }
-]
-```
-
-**Resposta de `GET /api/despesas/total/fornecedor`:**
-```json
-[
-  { "fornecedor_id": 1, "fornecedor": "Empresa XYZ Ltda", "total": "30000.00" },
-  { "fornecedor_id": 2, "fornecedor": "Outra Empresa S/A", "total": "95000.00" }
-]
-```
-
----
-
-### Comprovantes de Despesa
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `POST` | `/api/despesas/{id}/comprovante` | Faz upload de comprovante (multipart/form-data, campo `file`) |
-| `GET` | `/api/despesas/{id}/comprovante` | Baixa/visualiza o comprovante |
-| `DELETE` | `/api/despesas/{id}/comprovante` | Remove o comprovante |
-
-**Formatos aceitos no upload:** JPEG, PNG, PDF (máx. 5 MB)
-
----
-
-## Setup do Projeto
-
-### 1. Criar o projeto
+### Setup do Projeto
 
 ```bash
 npm create vite@latest portal-transparencia -- --template react-ts
 cd portal-transparencia
 npm install
-```
-
-### 2. Instalar e inicializar o Capacitor
-
-```bash
 npm install @capacitor/core @capacitor/cli
 npx cap init
+npm install @capacitor/android   # ou @capacitor/ios
+npx cap add android              # ou ios
+npm run build && npx cap sync
+npx cap run android              # ou ios
 ```
 
-Preencha o nome do app e o app ID (ex: `com.seunome.portaltransparencia`).
-
-### 3. Adicionar a plataforma desejada
-
-```bash
-# Para Android:
-npm install @capacitor/android
-npx cap add android
-
-# Para iOS (requer Mac + Xcode):
-npm install @capacitor/ios
-npx cap add ios
+Crie um arquivo `.env` com:
 ```
-
-### 4. Configurar o IP da API
-
-Crie um arquivo `.env` com a URL base da API e a chave fornecida pelo recrutador:
-
-```env
 VITE_API_URL=https://avaliacaoapi.ext.topsolutionsrn.com.br/api
 VITE_API_KEY=sua-chave-aqui
 ```
 
-### 5. Rodar no emulador/device
+## Funcionalidades Gerais
 
-```bash
-npm run build
-npx cap sync
+- O app deve rodar corretamente em emulador ou dispositivo físico, não apenas no navegador.
+- As telas de listagem devem exibir estado de carregamento enquanto os dados são buscados.
+- Erros de requisição devem ser comunicados ao usuário de forma clara.
+- O layout deve ser responsivo e adequado para uso mobile.
 
-# Android:
-npx cap run android
+## Bônus
 
-# iOS:
-npx cap run ios
-```
+Essa etapa é opcional e serve como diferencial. Não é obrigatório realizar os itens abaixo:
 
-Para desenvolvimento com hot reload, você pode usar `npx cap run android --livereload --external` com Vite rodando em paralelo.
+- CRUD completo de órgãos, fornecedores e despesas (criar, editar, excluir).
+- Upload de comprovante utilizando Capacitor Camera ou FilePicker.
+- Pull-to-refresh nas listagens.
+- Skeleton loading nos estados de carregamento.
+- Tema escuro.
+- Paginação ou scroll infinito nas listagens.
+- Tratamento de erros com toasts ou snackbars.
 
----
+## Instruções Finais
 
-## Telas Obrigatórias
+- O projeto deve ser feito em **React + Capacitor**, conforme indicado no enunciado.
+- Utilize o repositório disponibilizado pela empresa no GitHub.
+- Inclua no README do seu projeto: como rodar, em qual emulador/device foi testado e a API Key usada nos testes.
+- Prazo: O prazo para entrega do desafio é de **7 dias** após o recebimento deste enunciado.
 
-Seu app deve implementar ao menos as seguintes telas:
-
-### Dashboard
-- Exibe o total de gastos agrupado por **órgão** (`GET /api/despesas/total/orgao`)
-- Exibe o total de gastos agrupado por **fornecedor** (`GET /api/despesas/total/fornecedor`)
-- Ponto de entrada visual do app — destaque os números
-
-### Lista de Despesas
-- Listagem completa de despesas (`GET /api/despesas`)
-- Filtros funcionais: por órgão, por fornecedor, por valor mínimo e valor máximo
-- Deve mostrar descrição, valor, órgão e fornecedor de cada item
-
-### Detalhe de Despesa
-- Todos os campos da despesa
-- Se houver comprovante (`comprovante_url != null`), ofereça botão para visualizá-lo ou abri-lo
-
-### Lista de Órgãos
-- Listagem simples de todos os órgãos (`GET /api/orgaos`)
-
-### Lista de Fornecedores
-- Listagem simples de todos os fornecedores (`GET /api/fornecedores`)
-
----
-
-## Diferenciais (Opcional)
-
-Estes itens não são obrigatórios, mas contam pontos:
-
-- **CRUD completo** de órgãos, fornecedores e despesas (criar, editar, excluir)
-- **Upload de comprovante** usando Capacitor Camera ou FilePicker (`POST /api/despesas/{id}/comprovante`)
-- **Pull-to-refresh** nas listagens
-- **Tratamento de erros** com feedback visual (toasts, snackbars, estados de erro inline)
-- **Skeleton loading** / estados de carregamento
-- **Tema escuro**
-- **Paginação** ou scroll infinito nas listagens
-
----
-
-## Critérios de Avaliação
-
-| Critério | O que observamos |
-|----------|-----------------|
-| **Funcionalidade** | As telas obrigatórias funcionam corretamente? |
-| **Capacitor** | O app roda no emulador ou device (não apenas no browser)? |
-| **Organização** | Componentes bem divididos, camada de serviços/api separada |
-| **TypeScript** | Respostas da API tipadas, sem `any` desnecessário |
-| **React** | Uso correto de hooks, gerenciamento de estado, separação de responsabilidades |
-| **UX/UI** | A experiência é fluida e visualmente agradável? |
-
----
-
-## Entrega
-
-1. Faça um **fork** do repositório fornecido (ou crie um repositório público no GitHub)
-2. Desenvolva o projeto no seu fork
-3. Envie o link do repositório ao recrutador até o prazo informado
-
-**Prazo:** 7 dias a partir do recebimento deste enunciado
-
-**No README do seu projeto, inclua:**
-- Como rodar o projeto (passo a passo)
-- Em qual emulador/device foi testado (ex: "Android API 34 no Android Studio")
-- A API Key usada nos testes (para que possamos rodar e testar)
-
----
-
-## Observações Finais
-
-- **CORS**: a API já está configurada para aceitar requisições do Capacitor. Se houver problemas de CORS, avise o recrutador.
-- **HTTPS**: a API usa HTTPS, então não há necessidade de configuração especial de cleartext no Android.
-- **API Key no `.env`**: use `VITE_API_KEY` no seu `.env` e acesse via `import.meta.env.VITE_API_KEY`. Adicione `.env` ao `.gitignore`.
-
-Boa sorte! Qualquer dúvida, entre em contato com o recrutador.
+Boa sorte e bom desenvolvimento!
