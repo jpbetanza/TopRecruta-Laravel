@@ -20,6 +20,9 @@ UPLOADS_DIR="$(dirname ${DB_DATABASE})/uploads"
 mkdir -p "${UPLOADS_DIR}"
 chown -R www-data:www-data "${UPLOADS_DIR}"
 
+# Re-run config cache so runtime secrets (APP_KEY, API_KEYS, APP_URL, etc.) are included
+php artisan config:cache
+
 # Run migrations
 php artisan migrate --force --no-interaction
 
@@ -28,9 +31,6 @@ php artisan db:seed --force --no-interaction
 
 # Create storage symlink (public/storage → storage/app/public)
 php artisan storage:link --force
-
-# Re-run config cache so runtime secrets (APP_KEY, APP_URL, etc.) are included
-php artisan config:cache
 
 # Hand off to the container's main command (apache2-foreground)
 exec "$@"

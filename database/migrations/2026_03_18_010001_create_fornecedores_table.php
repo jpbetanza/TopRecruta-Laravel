@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('fornecedores', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('document')->unique();
+            $table->string('document');
             $table->timestamps();
         });
     }

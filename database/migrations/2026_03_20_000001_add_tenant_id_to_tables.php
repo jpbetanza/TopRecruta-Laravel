@@ -8,11 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('orgaos', fn (Blueprint $t) =>
-            $t->string('tenant_id')->nullable()->index()->after('id'));
+        Schema::table('orgaos', function (Blueprint $t) {
+            $t->string('tenant_id')->nullable()->index()->after('id');
+            $t->unique(['tenant_id', 'name']);
+        });
 
-        Schema::table('fornecedores', fn (Blueprint $t) =>
-            $t->string('tenant_id')->nullable()->index()->after('id'));
+        Schema::table('fornecedores', function (Blueprint $t) {
+            $t->string('tenant_id')->nullable()->index()->after('id');
+            $t->unique(['tenant_id', 'document']);
+        });
 
         Schema::table('despesas', fn (Blueprint $t) =>
             $t->string('tenant_id')->nullable()->index()->after('id'));
@@ -20,8 +24,14 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('orgaos', fn (Blueprint $t) => $t->dropColumn('tenant_id'));
-        Schema::table('fornecedores', fn (Blueprint $t) => $t->dropColumn('tenant_id'));
+        Schema::table('orgaos', function (Blueprint $t) {
+            $t->dropUnique(['tenant_id', 'name']);
+            $t->dropColumn('tenant_id');
+        });
+        Schema::table('fornecedores', function (Blueprint $t) {
+            $t->dropUnique(['tenant_id', 'document']);
+            $t->dropColumn('tenant_id');
+        });
         Schema::table('despesas', fn (Blueprint $t) => $t->dropColumn('tenant_id'));
     }
 };
